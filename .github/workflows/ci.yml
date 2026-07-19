@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore Srm.sln
+
+      - name: Check NuGet vulnerabilities
+        run: dotnet list Srm.sln package --vulnerable --include-transitive 2>&1 | tee vuln.txt; if (Select-String -Path vuln.txt -Pattern "has the following vulnerable packages") { exit 1 }
+        shell: pwsh
+
+      - name: Build
+        run: dotnet build Srm.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test Srm.sln -c Release --no-build --verbosity normal

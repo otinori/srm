@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Srm.PolicyEditor</RootNamespace>
+    <UseWPF>true</UseWPF>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Srm.PolicyEngine\Srm.PolicyEngine.csproj" />
+    <ProjectReference Include="..\Srm.PolicyIntegrity\Srm.PolicyIntegrity.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- DC-018/DC-026: Srm.PolicyEditorはSrm.Runtimeを参照しないため、DC-018の
+         バージョン固定（Srm.Runtime.csproj）の恩恵を受けず、このプロジェクトだけ
+         フレームワーク既定の8.0.x版System.Text.Json/System.IO.Pipelinesを
+         publishしていた。tools/package.ps1で同一binフォルダへ結合publishする際、
+         dotnet publishの増分コピー判定が既存ファイルを新版で上書きしないケースが
+         あり（実機で再現確認済み）、後続でpublishされるSrm.McpBridgeGuest.exeが
+         期待する10.0.9版が反映されずFileNotFoundExceptionを起こしていた。
+         他3プロジェクトと同一バージョンを明示することで、publish順序に関わらず
+         全プロジェクトが同じDLLを持つことを保証する。 -->
+    <PackageReference Include="System.Text.Json" Version="10.0.9" />
+    <PackageReference Include="System.IO.Pipelines" Version="10.0.9" />
+  </ItemGroup>
+
+</Project>

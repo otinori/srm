@@ -1,0 +1,44 @@
+<UserControl x:Class="Srm.PolicyEditor.Views.PolicyListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="ポリシー一覧" FontSize="20" FontWeight="Bold" Margin="0,0,0,12" />
+
+        <GroupBox Grid.Row="1" Header="対象ディレクトリ" Margin="0,0,0,12">
+            <StackPanel Margin="8">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Content="切り替え" Command="{Binding SwitchFolderCommand}" Margin="4,0,0,0" />
+                    <Button DockPanel.Dock="Right" Content="参照..." Command="{Binding BrowseFolderCommand}" Margin="4,0,0,0" />
+                    <TextBox Text="{Binding FolderInput, UpdateSourceTrigger=PropertyChanged}" />
+                </DockPanel>
+                <TextBlock Text="{Binding FolderError}" Foreground="Red" Margin="0,4,0,0" />
+            </StackPanel>
+        </GroupBox>
+
+        <Button Grid.Row="2" Content="新規作成" Command="{Binding NewPolicyCommand}"
+                HorizontalAlignment="Left" Padding="12,4" Margin="0,0,0,12" />
+
+        <DataGrid Grid.Row="3" ItemsSource="{Binding Policies}" AutoGenerateColumns="False" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="名前" Binding="{Binding Name}" Width="*" />
+                <DataGridTextColumn Header="整合性" Binding="{Binding Signed}" Width="120" />
+                <DataGridTemplateColumn Header="" Width="80">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="編集"
+                                    Command="{Binding DataContext.EditPolicyCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                    CommandParameter="{Binding Name}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

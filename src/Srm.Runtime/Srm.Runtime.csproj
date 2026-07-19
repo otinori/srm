@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Srm.Runtime</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Srm.PolicyEngine\Srm.PolicyEngine.csproj" />
+    <ProjectReference Include="..\Srm.PolicyIntegrity\Srm.PolicyIntegrity.csproj" />
+    <PackageReference Include="System.Drawing.Common" Version="10.0.9" />
+    <!-- Srm.Mcpのみが依存するModelContextProtocol/Microsoft.Extensions.Hostingが
+         System.Text.Json/System.IO.Pipelinesを10.0.9へ引き上げる。tools/package.ps1は
+         srm.exe/Srm.Mcp.exe/Srm.PolicyEditor.exeを同一binフォルダへpublishし
+         同名DLLを共有する前提のため、Srm.Runtimeを介する全アプリでバージョンを
+         明示的に揃えないと、後から publish されたアプリのDLLが先発アプリの
+         deps.jsonが期待するバージョンを上書きしFileNotFoundExceptionを起こす
+         （実機で再現確認済み。srm.exe単体publishでは発生しない）。 -->
+    <PackageReference Include="System.Text.Json" Version="10.0.9" />
+    <PackageReference Include="System.IO.Pipelines" Version="10.0.9" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Srm.Runtime.Tests" />
+  </ItemGroup>
+</Project>

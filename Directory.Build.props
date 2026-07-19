@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <!-- プロダクト全体のバージョン。ここだけを編集する。 -->
+    <Version>0.1.0.0</Version>
+    <Company>srm</Company>
+    <Product>srm</Product>
+    <Copyright>Copyright (c) 2026 otinori. Licensed under MIT.</Copyright>
+  </PropertyGroup>
+</Project>

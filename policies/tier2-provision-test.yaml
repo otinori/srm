@@ -1,0 +1,41 @@
+name: tier2-provision-test
+description: >-
+  Tier2実機テスト用: provisionセクション（DC-012）の実機検証用。ダミーの
+  ツールチェーン(mytool.zip)を展開・PATH追加し、run:ステップで実行できることを
+  確認する。
+
+tier: 2
+
+application:
+  executable: 'C:\Windows\System32\cmd.exe'
+  arguments: '/c echo done-app > C:\srm\outbox\app-ran.txt'
+  working_directory: 'C:\srm\outbox'
+
+filesystem:
+  allow_paths:
+    - path: 'C:\srm\outbox'
+      access: rw
+
+network:
+  allow_hosts: []
+
+process:
+  allow_child_processes: true
+  max_processes: 5
+
+logging:
+  level: debug
+  retention_days: 7
+
+provision:
+  toolchain:
+    - name: mytool
+      version: "1.0"
+  steps:
+    - "unzip: mytool"
+    - "run: mytool.cmd > C:\\srm\\outbox\\provision-run.txt"
+  network: false
+
+evidence:
+  source_path: 'C:\srm\outbox'
+  retention_days: 7

@@ -1,0 +1,41 @@
+name: tier2-mcp-bridge-test
+description: >-
+  channel-d-guest-mcp-bridge タスクグループ5用の実機検証。cmd.exe をゲスト内
+  AppContainerで起動し、SRM_MCP_CONTROL_DIR/SRM_MCP_SERVERS環境変数の伝播と、
+  ゲスト側スタブ（Srm.McpBridgeGuest.exe、toolingマップフォルダ経由）への
+  実行権付与を、outboxフォルダへの書き込みで確認する。
+
+tier: 2
+
+application:
+  executable: 'C:\Windows\System32\cmd.exe'
+  arguments: '/c (echo CONTROL=%SRM_MCP_CONTROL_DIR% & echo SERVERS=%SRM_MCP_SERVERS%) > C:\srm\outbox\env.txt && (echo. | "C:\srm\tooling\Srm.McpBridgeGuest.exe") > C:\srm\outbox\stub.txt 2>&1'
+  working_directory: 'C:\srm\outbox'
+
+filesystem:
+  allow_paths:
+    - path: 'C:\srm\outbox'
+      access: rw
+
+network:
+  allow_hosts: []
+
+process:
+  allow_child_processes: true
+  max_processes: 5
+
+logging:
+  level: debug
+  retention_days: 7
+
+evidence:
+  source_path: 'C:\srm\outbox'
+  retention_days: 7
+
+mcp:
+  allow_servers:
+    - name: everything
+      command: 'npx'
+      args: '-y @modelcontextprotocol/server-everything'
+      allow_tools:
+        - echo

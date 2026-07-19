@@ -1,0 +1,7 @@
+{
+  "enabledPlugins": {
+    "udr@udr-marketplace": true,
+    "conclave@conclave-marketplace": true,
+    "pkmp@pkmp-marketplace": true
+  }
+}

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Srm.McpBridgeGuest</RootNamespace>
+    <AssemblyName>Srm.McpBridgeGuest</AssemblyName>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Srm.Runtime\Srm.Runtime.csproj" />
+    <!-- Srm.Mcp.csproj/Srm.Cli.csprojと同一バージョンを明示的に揃える
+         （DC-018: 同一binフォルダへpublishされる複数実行ファイル間の依存バージョン
+         衝突を避けるため）。 -->
+    <PackageReference Include="ModelContextProtocol" Version="1.4.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.9" />
+  </ItemGroup>
+</Project>

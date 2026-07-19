@@ -1,0 +1,33 @@
+name: tier2-quota-test
+description: >-
+  Tier2実機テスト用: outboxクォータ監視(evidence.max_outbox_bytes)の早期終了を
+  検証するための最小構成。cmd.exeがoutboxへ繰り返し追記し続け、閾値超過で
+  ホスト側の監視プロセスがstop.signalを書いて早期終了させることを確認する。
+
+tier: 2
+
+application:
+  executable: 'C:\Windows\System32\cmd.exe'
+  arguments: '/c for /l %i in (1,1,500000) do (echo 0123456789012345678901234567890123456789 >> C:\srm\outbox\growing.txt)'
+  working_directory: 'C:\srm\outbox'
+
+filesystem:
+  allow_paths:
+    - path: 'C:\srm\outbox'
+      access: rw
+
+network:
+  allow_hosts: []
+
+process:
+  allow_child_processes: true
+  max_processes: 5
+
+logging:
+  level: debug
+  retention_days: 7
+
+evidence:
+  source_path: 'C:\srm\outbox'
+  retention_days: 7
+  max_outbox_bytes: 4096

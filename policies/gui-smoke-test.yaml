@@ -1,0 +1,24 @@
+name: gui-smoke-test
+description: GUIウィンドウがAppContainer内で表示され、クリック操作を受け付けるかの検証用
+tier: 1
+
+application:
+  executable: "C:\\project\\github\\srm\\publish\\GuiSmokeTest.exe"
+  arguments: ""
+  working_directory: "%TEMP%\\srm-smoke-test"
+
+filesystem:
+  allow_paths:
+    - path: "%TEMP%\\srm-smoke-test"
+      access: rw
+
+network:
+  allow_hosts: []
+
+process:
+  allow_child_processes: true
+  max_processes: 5
+
+logging:
+  level: debug
+  retention_days: 7

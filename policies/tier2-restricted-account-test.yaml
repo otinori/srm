@@ -1,0 +1,40 @@
+name: tier2-restricted-account-test
+description: >-
+  Tier2実機テスト用: restricted-account-app-isolation（DC-023、Low Integrity
+  Levelピボット）をtier2.app_container: false経由で実際に使い、fs書き込み
+  バリアとネットワーク遮断（UserSidベースのWfpManager、tier2-guest-network-egress
+  DC-022 task 5）の両方がゲスト内で機能することを確認する。
+
+tier: 2
+
+tier2:
+  app_container: false
+
+application:
+  executable: 'C:\Windows\System32\cmd.exe'
+  arguments: >-
+    /c echo write_test_ok> C:\srm\outbox\write-test.txt
+    & curl.exe https://example.com -v --max-time 8 > C:\srm\outbox\allowed.txt 2>&1
+    & curl.exe https://neverssl.com -v --max-time 8 > C:\srm\outbox\blocked.txt 2>&1
+  working_directory: 'C:\srm\outbox'
+
+filesystem:
+  allow_paths:
+    - path: 'C:\srm\outbox'
+      access: rw
+
+network:
+  allow_hosts:
+    - "example.com"
+
+process:
+  allow_child_processes: true
+  max_processes: 10
+
+logging:
+  level: debug
+  retention_days: 7
+
+evidence:
+  source_path: 'C:\srm\outbox'
+  retention_days: 7

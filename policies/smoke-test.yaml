@@ -1,0 +1,24 @@
+name: smoke-test
+description: 受け入れ基準8.1用の最小スモークテストポリシー（cmd.exeをAppContainer内で実行）
+tier: 1
+
+application:
+  executable: "%WINDIR%\\System32\\cmd.exe"
+  arguments: "/c echo hello && whoami /groups"
+  working_directory: "%TEMP%\\srm-smoke-test"
+
+filesystem:
+  allow_paths:
+    - path: "%TEMP%\\srm-smoke-test"
+      access: rw
+
+network:
+  allow_hosts: []
+
+process:
+  allow_child_processes: true
+  max_processes: 5
+
+logging:
+  level: debug
+  retention_days: 7

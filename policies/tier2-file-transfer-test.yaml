@@ -1,0 +1,33 @@
+name: tier2-file-transfer-test
+description: >-
+  Tier2実機テスト用: tier2-channel-c-mapped-folderのtier2-file-transferが
+  実行中のTier2ゲストに対してホスト⇄ゲスト双方向のオンデマンドファイル転送を
+  実際に行えるか、および転送先/転送元がfilesystem.allow_pathsの範囲外だと
+  拒否されることを確認する。cmd.exeをping待機で起動したままにし、その間に
+  `srm transfer put`/`srm transfer get`を試す。
+
+tier: 2
+
+application:
+  executable: 'C:\Windows\System32\cmd.exe'
+  arguments: '/c ping -n 600 127.0.0.1 > nul'
+  working_directory: 'C:\srm\outbox'
+
+filesystem:
+  allow_paths:
+    - path: 'C:\srm\outbox'
+      access: rw
+    - path: 'C:\Windows\Temp\transfer-allowed'
+      access: rw
+
+process:
+  allow_child_processes: true
+  max_processes: 10
+
+logging:
+  level: debug
+  retention_days: 7
+
+evidence:
+  source_path: 'C:\srm\outbox'
+  retention_days: 7

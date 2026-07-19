@@ -1,0 +1,60 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g. 0.1.0.0) — release is created as draft'
+        required: true
+        default: '0.1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore Srm.sln
+
+      - name: Test
+        run: dotnet test Srm.sln -c Release
+
+      - name: Extract version from tag
+        id: ver
+        shell: pwsh
+        run: |
+          # workflow_dispatch では inputs.version を使い、タグ push では ref_name を使う
+          $raw = if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            "${{ github.event.inputs.version }}"
+          } else {
+            "${{ github.ref_name }}".TrimStart('v')
+          }
+          $parts = $raw.Split('.')
+          while ($parts.Count -lt 4) { $parts += '0' }
+          "semver=$raw"                          >> $env:GITHUB_OUTPUT
+          "fourpart=$($parts[0..3] -join '.')"   >> $env:GITHUB_OUTPUT
+
+      - name: Build release package
+        shell: pwsh
+        run: .\tools\package.ps1 -Version ${{ steps.ver.outputs.fourpart }}
+
+      - name: Create GitHub Release (draft)
+        uses: softprops/action-gh-release@v3
+        with:
+          name: srm v${{ steps.ver.outputs.semver }}
+          draft: true
+          generate_release_notes: true
+          files: |
+            artifacts/packages/srm-${{ steps.ver.outputs.fourpart }}.zip

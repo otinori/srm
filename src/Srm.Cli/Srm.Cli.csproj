@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Srm.Cli</RootNamespace>
+    <AssemblyName>srm</AssemblyName>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Srm.PolicyEngine\Srm.PolicyEngine.csproj" />
+    <ProjectReference Include="..\Srm.PolicyIntegrity\Srm.PolicyIntegrity.csproj" />
+    <ProjectReference Include="..\Srm.Runtime\Srm.Runtime.csproj" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    <!-- channel-d-guest-mcp-bridge: mcp-bridge-host内部モードが実ホストMCPサーバーへの
+         クライアントとして使う。Srm.Mcp.csprojと同一バージョンを明示的に揃える
+         （DC-018: 同一binフォルダへpublishされる複数実行ファイル間の依存バージョン
+         衝突を避けるため）。 -->
+    <PackageReference Include="ModelContextProtocol" Version="1.4.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Srm.Diagnostics.Kernel\Srm.Diagnostics.Kernel.csproj" />
+  </ItemGroup>
+</Project>

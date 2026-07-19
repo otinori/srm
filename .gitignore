@@ -1,0 +1,46 @@
+node_modules/
+.DS_Store
+*.local
+*.local.json
+.env
+
+# .NET build artifacts
+[Bb]in/
+[Oo]bj/
+
+# 成果物出力 (CI が artifacts/ に EXE/packages を集約)
+artifacts/
+
+# TESTING.md の手動検証手順が生成する使い捨てビルド (CI では使わない)
+publish/
+
+# ローカル専用の実機検証ポリシー (環境固有の値を含むためコミット対象外)
+policies/minecraft-test.yaml
+
+# dotnet test が生成するカバレッジ/シーケンス出力 (再生成可能、コミット不要)
+tests/**/TestResults/
+
+# setup.ps1 / srm validate --sign が生成する整合性サイドカー (再生成可能、コミット不要)
+policies/*.sha256
+PRE_PUBLIC_AUDIT_EVIDENCE.md
+
+# OpenSpec CLI が生成したスキル/コマンド定義 (ローカル作業用ツール。本リポジトリには同梱しない)
+.claude/skills/openspec-*/
+.claude/commands/opsx/
+.agent/skills/openspec-*/
+.agent/workflows/opsx-*.md
+
+# PKMP (Project Knowledge Modeling Platform) — 開発時のナレッジ管理ツール一式。
+# 製品コードとは別レイヤーの内部ツールのため本リポジトリには同梱しない。
+# records/（YAML原本）はviews/records/（生成されたMarkdownビュー）と1:1で
+# 内容が一致するため、閲覧用のviews/records/・views/all-records.mdのみを
+# 同梱し、YAML原本は内部ツール層として除外する。
+.pkmp/
+docs/
+/records/
+registry/
+views/docs/
+provenance/
+inbox/
+package.json
+package-lock.json

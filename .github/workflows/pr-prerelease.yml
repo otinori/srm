@@ -1,0 +1,95 @@
+name: PR Prerelease
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to build prerelease for'
+        required: true
+        type: string
+
+# 同じ PR の古いビルドを自動キャンセルして Windows runner 分を節約する。
+# workflow_dispatch は手動なのでキャンセルしない (pr_number でグループ化)。
+concurrency:
+  group: pr-prerelease-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  prerelease:
+    runs-on: windows-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore Srm.sln
+
+      - name: Test
+        run: dotnet test Srm.sln -c Release
+
+      - name: Resolve PR number
+        id: pr
+        shell: pwsh
+        run: |
+          $n = if ("${{ github.event_name }}" -eq "pull_request") {
+            "${{ github.event.pull_request.number }}"
+          } else {
+            "${{ github.event.inputs.pr_number }}"
+          }
+          "number=$n" >> $env:GITHUB_OUTPUT
+
+      - name: Determine version
+        id: ver
+        shell: pwsh
+        run: |
+          $base = (Select-Xml -Path Directory.Build.props -XPath '//Version').Node.InnerText
+          $parts = $base.Split('.')
+          while ($parts.Count -lt 4) { $parts += '0' }
+          $fourpart = "$($parts[0]).$($parts[1]).$($parts[2]).$($parts[3])"
+          $prver    = "$fourpart-pr${{ steps.pr.outputs.number }}"
+          "fourpart=$fourpart" >> $env:GITHUB_OUTPUT
+          "prver=$prver"       >> $env:GITHUB_OUTPUT
+          "tag=v$prver"        >> $env:GITHUB_OUTPUT
+
+      - name: Build release package
+        shell: pwsh
+        run: .\tools\package.ps1 -Version ${{ steps.ver.outputs.prver }}
+
+      - name: Delete existing prerelease for this PR
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ steps.ver.outputs.tag }}"
+          $existing = gh release list --repo ${{ github.repository }} --json tagName |
+            ConvertFrom-Json | Where-Object { $_.tagName -eq $tag }
+          if ($existing) {
+            gh release delete $tag --repo ${{ github.repository }} --yes --cleanup-tag
+          }
+
+      - name: Create prerelease
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: srm ${{ steps.ver.outputs.prver }} (PR #${{ steps.pr.outputs.number }})
+          prerelease: true
+          draft: false
+          body: |
+            PR #${{ steps.pr.outputs.number }} のテスト用プレリリースビルドです。
+            正式リリースではありません。
+
+            **コミット:** ${{ github.sha }}
+          files: |
+            artifacts/packages/srm-${{ steps.ver.outputs.prver }}.zip

@@ -1,0 +1,208 @@
+<UserControl x:Class="Srm.PolicyEditor.Views.PolicyEditView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </UserControl.Resources>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="16">
+            <DockPanel Margin="0,0,0,12">
+                <Button DockPanel.Dock="Right" Content="← 一覧に戻る" Command="{Binding BackCommand}" />
+                <TextBlock Text="{Binding Title}" FontSize="20" FontWeight="Bold" />
+            </DockPanel>
+
+            <Border Background="#FFEEEE" Padding="8" Margin="0,0,0,12"
+                    Visibility="{Binding HasErrors, Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock Text="バリデーションエラー（保存されていません）:" FontWeight="Bold" />
+                    <ItemsControl ItemsSource="{Binding Errors}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="{Binding SuccessMessage}" Foreground="Green" Margin="0,0,0,12" />
+
+            <GroupBox Header="保存先フォルダ" Margin="0,0,0,12"
+                      Visibility="{Binding IsCreateMode, Converter={StaticResource BoolToVis}}">
+                <StackPanel Margin="8">
+                    <TextBlock TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,4"
+                        Text="既定では起動時に解決された policies ディレクトリになっているが、任意のフォルダに変更できる。存在しないフォルダを指定した場合は保存時に自動作成される。" />
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="参照..." Command="{Binding BrowseSaveDirectoryCommand}" />
+                        <TextBox Text="{Binding SaveDirectory, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,4,0" />
+                    </DockPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="対象フォルダから生成（任意・軽量スキャン）" Margin="0,0,0,12"
+                      Visibility="{Binding IsCreateMode, Converter={StaticResource BoolToVis}}">
+                <StackPanel Margin="8">
+                    <TextBlock TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,4"
+                        Text="EXE/DLLが格納されたフォルダを指定すると、実行ファイル候補・アクセス許可パス・ネットワーク先の候補を推測してフォームに反映する。あくまで下書きのため、必ず内容を確認してから保存すること。" />
+                    <DockPanel Margin="0,0,0,4">
+                        <Button DockPanel.Dock="Right" Content="解析" Command="{Binding RunScaffoldCommand}" Margin="4,0,0,0" />
+                        <Button DockPanel.Dock="Right" Content="参照..." Command="{Binding BrowseScaffoldFolderCommand}" Margin="4,0,0,0" />
+                        <TextBox Text="{Binding ScaffoldFolder, UpdateSourceTrigger=PropertyChanged}" />
+                    </DockPanel>
+                    <TextBlock Text="{Binding ScaffoldError}" Foreground="Red" Margin="0,0,0,4" />
+
+                    <StackPanel Margin="0,0,0,4">
+                        <TextBlock Text="検出された実行ファイル候補" />
+                        <ComboBox ItemsSource="{Binding ExecutableCandidates}" SelectedItem="{Binding Executable}" />
+                    </StackPanel>
+
+                    <StackPanel>
+                        <TextBlock Text="検出されたホスト候補（文字列スキャンによる推測。誤検出の可能性あり）" />
+                        <ItemsControl ItemsSource="{Binding HostCandidates}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <CheckBox Content="{Binding Value}" IsChecked="{Binding Selected}" Margin="0,2,0,2" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Button Content="選択したホストを allow__hosts に追加" Command="{Binding ApplySelectedHostsCommand}"
+                                HorizontalAlignment="Left" Margin="0,4,0,0" />
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="基本情報" Margin="0,0,0,12">
+                <StackPanel Margin="8">
+                    <TextBlock Text="name" />
+                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
+
+                    <TextBlock Text="description" />
+                    <TextBox Text="{Binding Model.Description, UpdateSourceTrigger=PropertyChanged}"
+                             AcceptsReturn="True" Height="60" TextWrapping="Wrap" Margin="0,0,0,8" />
+
+                    <TextBlock Text="tier" />
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton GroupName="Tier" Content="1 (AppContainer)" IsChecked="{Binding IsTier1}" Margin="0,0,16,0" />
+                        <RadioButton GroupName="Tier" Content="2 (Windows Sandbox)" IsChecked="{Binding IsTier2}" />
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="application" Margin="0,0,0,12">
+                <StackPanel Margin="8">
+                    <TextBlock Text="executable" />
+                    <DockPanel Margin="0,0,0,8">
+                        <Button DockPanel.Dock="Right" Content="参照..." Command="{Binding BrowseExecutableCommand}" />
+                        <TextBox Text="{Binding Executable, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,4,0" />
+                    </DockPanel>
+
+                    <TextBlock Text="arguments" />
+                    <TextBox Text="{Binding Model.Application.Arguments, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
+
+                    <TextBlock Text="working_directory" />
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="参照..." Command="{Binding BrowseWorkingDirectoryCommand}" />
+                        <TextBox Text="{Binding WorkingDirectory, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,4,0" />
+                    </DockPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="variables" Margin="0,0,0,12">
+                <StackPanel Margin="8">
+                    <ItemsControl ItemsSource="{Binding Variables}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <DockPanel Margin="0,0,0,4">
+                                    <Button DockPanel.Dock="Right" Content="削除" Margin="4,0,0,0"
+                                            Command="{Binding DataContext.RemoveVariableCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}" />
+                                    <TextBox Text="{Binding Key, UpdateSourceTrigger=PropertyChanged}" Width="180"
+                                             Margin="0,0,4,0" />
+                                    <TextBox Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" />
+                                </DockPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Button Content="+ 行を追加" Command="{Binding AddVariableCommand}" HorizontalAlignment="Left" Margin="0,4,0,0" />
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="filesystem.allow__paths" Margin="0,0,0,12">
+                <StackPanel Margin="8">
+                    <ItemsControl ItemsSource="{Binding AllowPaths}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <DockPanel Margin="0,0,0,4">
+                                    <Button DockPanel.Dock="Right" Content="削除" Margin="4,0,0,0"
+                                            Command="{Binding DataContext.RemoveAllowPathCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}" />
+                                    <Button DockPanel.Dock="Right" Content="参照..." Margin="4,0,0,0"
+                                            Command="{Binding DataContext.BrowseAllowPathCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}" />
+                                    <ComboBox DockPanel.Dock="Right" Width="70" Margin="4,0,0,0" SelectedItem="{Binding Access}">
+                                        <ComboBox.ItemsSource>
+                                            <x:Array Type="{x:Type sys:String}">
+                                                <sys:String>r</sys:String>
+                                                <sys:String>rw</sys:String>
+                                            </x:Array>
+                                        </ComboBox.ItemsSource>
+                                    </ComboBox>
+                                    <TextBox Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" />
+                                </DockPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Button Content="+ 行を追加" Command="{Binding AddAllowPathCommand}" HorizontalAlignment="Left" Margin="0,4,0,0" />
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="network.allow__hosts" Margin="0,0,0,12">
+                <StackPanel Margin="8">
+                    <ItemsControl ItemsSource="{Binding Hosts}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <DockPanel Margin="0,0,0,4">
+                                    <Button DockPanel.Dock="Right" Content="削除" Margin="4,0,0,0"
+                                            Command="{Binding DataContext.RemoveHostCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}" />
+                                    <TextBox Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" />
+                                </DockPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Button Content="+ 行を追加" Command="{Binding AddHostCommand}" HorizontalAlignment="Left" Margin="0,4,0,0" />
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="process" Margin="0,0,0,12">
+                <StackPanel Margin="8">
+                    <CheckBox Content="allow__child__processes" IsChecked="{Binding Model.Process.AllowChildProcesses}" Margin="0,0,0,8" />
+                    <TextBlock Text="max_processes" />
+                    <TextBox Text="{Binding Model.Process.MaxProcesses, UpdateSourceTrigger=PropertyChanged}" Width="100" HorizontalAlignment="Left" />
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="logging" Margin="0,0,0,12">
+                <StackPanel Margin="8">
+                    <TextBlock Text="level" />
+                    <ComboBox SelectedItem="{Binding Model.Logging.Level}" Width="120" HorizontalAlignment="Left" Margin="0,0,0,8">
+                        <ComboBox.ItemsSource>
+                            <x:Array Type="{x:Type sys:String}">
+                                <sys:String>debug</sys:String>
+                                <sys:String>info</sys:String>
+                                <sys:String>warn</sys:String>
+                                <sys:String>error</sys:String>
+                            </x:Array>
+                        </ComboBox.ItemsSource>
+                    </ComboBox>
+                    <TextBlock Text="retention_days" />
+                    <TextBox Text="{Binding Model.Logging.RetentionDays, UpdateSourceTrigger=PropertyChanged}" Width="100" HorizontalAlignment="Left" />
+                </StackPanel>
+            </GroupBox>
+
+            <Button Content="保存（バリデーション→保存→サイドカー再署名）" Command="{Binding SaveCommand}"
+                    HorizontalAlignment="Left" Padding="12,6" Margin="0,0,0,24" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

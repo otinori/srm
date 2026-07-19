@@ -1,0 +1,36 @@
+name: claude-code
+description: Claude Code (claude.exe、ネイティブ単体バイナリインストール、%USERPROFILE%\.local\bin配下) — AppContainer 隔離実行ポリシー
+tier: 1
+
+application:
+  executable: "%USERPROFILE%\\.local\\bin\\claude.exe"
+  arguments: ""
+  working_directory: "%USERPROFILE%\\Projects"
+
+variables:
+  PROJECTS_DIR: "%USERPROFILE%\\Projects"
+
+filesystem:
+  allow_paths:
+    - path: "%USERPROFILE%\\Projects"
+      access: rw
+    - path: "%USERPROFILE%\\.claude.json"
+      access: rw
+    - path: "%USERPROFILE%\\.claude"
+      access: rw
+    - path: "%TEMP%\\claude-code"
+      access: rw
+
+network:
+  allow_hosts:
+    - "api.anthropic.com"
+    - "statsig.anthropic.com"
+    - "sentry.io"
+
+process:
+  allow_child_processes: true
+  max_processes: 20
+
+logging:
+  level: info
+  retention_days: 7

@@ -1,0 +1,34 @@
+name: tier2-smoke-test
+description: >-
+  Tier2 (Windows Sandbox) 実機テスト用の最小スモークテスト。
+  openspec/changes/tier2-windows-sandbox/tasks.md の 6.1 (VM起動〜nested起動)・
+  6.2 (ACL事前付与のマップフォルダ経由反映)・6.9 (VM起動時間) の検証専用。
+  cmd.exe をゲスト内AppContainerで起動し、マップされた outbox フォルダへの
+  書き込みでホスト事前付与ACLの反映を確認する。
+
+tier: 2
+
+application:
+  executable: 'C:\Windows\System32\cmd.exe'
+  arguments: '/c echo hello-tier2 > C:\srm\outbox\hello.txt'
+  working_directory: 'C:\srm\outbox'
+
+filesystem:
+  allow_paths:
+    - path: 'C:\srm\outbox'
+      access: rw
+
+network:
+  allow_hosts: []
+
+process:
+  allow_child_processes: true
+  max_processes: 5
+
+logging:
+  level: debug
+  retention_days: 7
+
+evidence:
+  source_path: 'C:\srm\outbox'
+  retention_days: 7
