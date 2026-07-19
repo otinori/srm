@@ -1,5 +1,7 @@
 ---
 name: "SRM"
+description: "AppContainer / Windows Sandboxを組み合わせ、任意のWindowsアプリケーション・AIエージェントをポリシーベースのOSレベルサンドボックス内で実行するCLIツール"
+background: "AIエージェント（Claude Codeのような、実際にファイル操作やコマンド実行を代行するAI）に作業を任せると、意図しないファイル削除や許可していない相手への通信といった事故が起こりうる。アプリ側のプログラムを一切書き換えずに、OS（Windows）標準の仕組みだけでこれを構造的に防ぎたい"
 version: "0.1.0.0"
 nature: "実験的"
 status: "開発中"
@@ -7,15 +9,11 @@ goal: "任意のWindowsアプリケーション・AIエージェントを、ポ�
 target_audience: "開発者"
 language: ["C#", "PowerShell"]
 frameworks: [".NET 8", "WPF"]
+license: "MIT"
 last_updated: 2026-07-19
 ---
 
 # SRM — Secure Runtime Manager
-
-AppContainer・Windows Filtering Platform・Job Object を組み合わせて、任意のWindowsアプリケーションをポリシーベースのサンドボックス内で実行するCLIツールです。
-
-**Status**: 開発中
-**License**: MIT
 
 ---
 
