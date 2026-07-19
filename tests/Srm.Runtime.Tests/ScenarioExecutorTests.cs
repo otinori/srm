@@ -45,7 +45,17 @@ public class ScenarioExecutorTests : IDisposable
             ],
         };
 
+        // CIランナー（特にwindows-latest）ではWindowsのフォアグラウンドロックにより
+        // SetForegroundWindowが一時的に失敗することがある（WindowGuardの前面化再検証は
+        // セキュリティ上必須のため本体側は変更せず、この既知の一過性エラーのみテスト側で
+        // リトライして吸収する）。
         var result = new ScenarioExecutor().Execute(scenario, allowedPids, _outboxDir);
+        for (var attempt = 0; attempt < 2 && !result.Success
+             && result.Steps.Any(s => s.Error?.Contains("前面化できませんでした") == true); attempt++)
+        {
+            Thread.Sleep(500);
+            result = new ScenarioExecutor().Execute(scenario, allowedPids, _outboxDir);
+        }
 
         Assert.True(result.Success, string.Join("; ", result.Steps.Select(s => s.Error)));
         Assert.Equal(2, result.Steps.Count);

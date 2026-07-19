@@ -11,6 +11,10 @@ on:
         required: true
         default: '0.1.0.0'
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
