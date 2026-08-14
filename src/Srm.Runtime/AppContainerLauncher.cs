@@ -19,7 +19,8 @@ public class AppContainerLauncher
         IntPtr sidAppContainer,
         string? workingDirectory = null,
         bool redirectStdioToNul = false,
-        IReadOnlyDictionary<string, string>? extraEnvironmentVariables = null)
+        IReadOnlyDictionary<string, string>? extraEnvironmentVariables = null,
+        bool forceInternetCapability = false)
     {
         var exe = policy.Application.Executable;
         var args = policy.Application.Arguments;
@@ -47,6 +48,12 @@ public class AppContainerLauncher
             // ルールとは無関係にWindows組み込みのAppContainerネットワーク隔離が
             // 全アウトバウンド通信をブロックしてしまう。allow_hostsが空のポリシーは
             // 元々ネットワーク完全遮断を意図しているため、ケーパビリティを与えない。
+            //
+            // resource-access-audit-logging: `srm audit`はallow_hostsによる拒否を
+            // 行わず、対象アプリが実際にどこへ接続しようとするかをETWで観測したい
+            // ため、allow_hostsの内容に関わらずforceInternetCapability=trueで
+            // ケーパビリティを強制的に付与できるようにする（AuditOperation経由でのみ
+            // trueを渡す。srm run経由の呼び出しは常にfalseのまま、既存動作を変えない）。
             var caps = new AppContainerNative.SECURITY_CAPABILITIES
             {
                 AppContainerSid = sidAppContainer,
@@ -55,7 +62,7 @@ public class AppContainerLauncher
                 Reserved = 0,
             };
 
-            if (policy.Network.AllowHosts.Count > 0)
+            if (policy.Network.AllowHosts.Count > 0 || forceInternetCapability)
             {
                 if (!AclNative.ConvertStringSidToSidW(AppContainerNative.CAPABILITY_INTERNET_CLIENT_SID, out internetClientSid) || internetClientSid == IntPtr.Zero)
                     throw new Win32Exception(Marshal.GetLastWin32Error(), "internetClientケーパビリティSIDの変換に失敗しました");

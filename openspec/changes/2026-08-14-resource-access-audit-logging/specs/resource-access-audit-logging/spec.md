@@ -47,3 +47,29 @@
 - **THEN** システムは、auditモードが未許可のファイル読み取り・ネットワーク
   接続を拒否せず許可すること、および信頼できないアプリの観測にはTier2の
   併用を推奨する旨を、実行前に警告として表示する
+
+### Requirement: `srm audit`はv1ではTier1ポリシーのみに対応する
+`srm audit`は、`tier: 2`のポリシーを指定された場合、対象アプリを起動せず
+明確なエラーで終了しなければならない（MUST）。
+
+#### Scenario: Tier2ポリシーはエラーで拒否される
+- **WHEN** ユーザーが`tier: 2`のポリシーに対して`srm audit`を実行する
+- **THEN** システムは対象アプリを起動せず、Tier1限定である旨のエラー
+  メッセージを表示して終了する
+
+### Requirement: ファイルシステムの観測範囲は`--scope`で指定した範囲に限定される
+`srm audit`は、`--scope`で指定したパス（省略時は`application.
+working_directory`）にのみ読み取りアクセスを付与しなければならない
+（MUST）。`--scope`の範囲外へのアクセスはAppContainerのDACLにより引き続き
+拒否されるため、観測対象にもならない。
+
+#### Scenario: --scope範囲外へのアクセスは引き続き拒否される
+- **WHEN** `srm audit`で起動したアプリが`--scope`で指定した範囲に含まれない
+  パスを読み取ろうとする
+- **THEN** システムはそのアクセスを拒否する（audit記録の対象にもならない）
+
+#### Scenario: --scope省略時はworking_directoryが既定値になる
+- **WHEN** ユーザーが`--scope`を指定せずに`srm audit`を実行し、対象ポリシー
+  の`application.working_directory`が設定されている
+- **THEN** システムは`application.working_directory`を監視スコープとして
+  使用する

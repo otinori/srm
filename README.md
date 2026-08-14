@@ -203,6 +203,7 @@ cd bin
 | `srm validate <policy>` | ポリシーファイルの構文と整合性を検証する |
 | `srm evidence list/show/promote/reject <app>` | Tier2の検疫データ（outbox）を確認・昇格・却下する |
 | `srm diag <app> [--stacktrace \| --watch]` | 実行中アプリのCPU時間・カーネルスタック・プロセス一覧を診断用にサンプリングする |
+| `srm audit <policy> [--scope <path>]` | ブロックせずファイル/ネットワークへのアクセス試行を記録する（隔離はしない、Tier1専用） |
 | `srm transfer put/get <app>` | 実行中のTier2ゲストとホスト間でファイルをオンデマンド転送する |
 | `srm cleanup-account <policy>` | `tier2.app_container: false`用に作成された専用ローカルアカウントを削除する |
 

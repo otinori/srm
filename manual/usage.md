@@ -15,6 +15,7 @@
   - [srm validate](#srm-validate)
   - [srm evidence](#srm-evidence)
   - [srm diag](#srm-diag)
+  - [srm audit](#srm-audit)
   - [srm transfer](#srm-transfer)
   - [srm cleanup-account](#srm-cleanup-account)
 - [MCPサーバー（Srm.Mcp）](#mcpサーバーsrmmcp)
@@ -390,6 +391,67 @@ DC-025で見つかっている（原因未特定、`tier2.app_container: false`�
   ]
 }
 ```
+
+---
+
+### srm audit
+
+```
+srm audit <policy> [--scope <path>]... [--no-integrity-check]
+```
+
+`srm run`はポリシー外のファイル/ネットワークアクセスを拒否するが、`srm audit`は
+**拒否せず**、対象アプリが実際にどのパス・どのホストへアクセスしようとしたかを
+記録する（resource-access-audit-logging）。未知のアプリのポリシーを最小権限で
+書く際の下調べや、信頼していないアプリ・AIエージェントの挙動をセキュリティリスク
+評価目的で観測する用途を想定している。
+
+**現時点ではTier1（AppContainer）ポリシーのみに対応**（Tier2は今後の拡張対象）。
+管理者権限が必要（ETWカーネルセッションを使うため）。
+
+**隔離しないことに関する重要な注意**: `srm audit`実行中は、
+
+- `--scope`で指定したパス（省略時は`application.working_directory`）への
+  **広い読み取りアクセス**を対象アプリに付与する（書き込みは許可しない）。
+- ネットワークは`network.allow_hosts`の内容に関わらず**無制限に許可**する。
+
+つまり`srm audit`はサンドボックスとして機能しない。信頼できないバイナリ・
+エージェントを観測する場合は、VM境界のあるTier2ポリシーとの併用を推奨する
+（Tier2対応が入るまでは、少なくとも使い捨て可能な環境で実行すること）。
+
+`srm audit`は`srm run`と異なりフォアグラウンドで動き続け、対象アプリが終了するか
+Ctrl+Cで停止するまでアクセス試行を記録し続ける。終了時にコンソールへサマリー
+（許可済み/未許可の件数、未許可だったパス・接続先の一覧）を表示し、詳細は
+`srm logs <policy>`で確認できる（`audit_fs`/`audit_net`エントリ）。
+
+**例：**
+
+```powershell
+.\srm.exe audit unknown-tool --scope C:\Users\me\Downloads\unknown-tool
+```
+
+```
+[警告] srm audit は隔離を行いません。...
+監視を開始しました: unknown-tool (PID: 4821)。Ctrl+Cで停止します。
+
+=== audit サマリー: unknown-tool ===
+ファイルアクセス: 42件（許可済み 0件 / 未許可 42件）
+ネットワーク接続: 3件（許可済み 0件 / 未許可 3件）
+未許可のパス（srm runなら拒否されていたはず）:
+  - C:\Users\me\Downloads\unknown-tool\config.json
+  - C:\Users\me\Downloads\unknown-tool\cache\index.db
+未許可の接続先（srm runなら拒否されていたはず）:
+  - 203.0.113.10:443
+詳細ログ: srm logs unknown-tool
+```
+
+（この例では`--scope`の範囲＝`allow_paths`が空のポリシーを想定しているため、
+`--scope`内の全アクセスが「未許可」と判定されている。実際には、`--scope`の
+**外側**へのアクセスは、AppContainerのDACLにより実際には拒否され観測すら
+できない。`--scope`を意図的に広げない限り「本当は触りたかったが観測できな
+かった」範囲が残ることに注意。詳細は
+`openspec/changes/2026-08-14-resource-access-audit-logging/design.md`の
+Open Questionsを参照。）
 
 ---
 
