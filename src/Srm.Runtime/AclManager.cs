@@ -207,7 +207,19 @@ public class AclManager
             if (!Directory.Exists(scopePath)) continue;
 
             GrantTraverseChain(scopePath, sidGrantee, sharedTraverseNativeSid, sharedTraverseSid);
-            GrantPathAccess(scopePath, AclNative.GENERIC_READ, sidGrantee, AclNative.SUB_CONTAINERS_AND_OBJECTS_INHERIT);
+
+            // 実機検証で判明: drivers\etc等、TrustedInstaller所有の保護されたディレクトリを
+            // --scopeに指定すると、Administratorsでも該当パス自体のDACL書き換えは
+            // ERROR_ACCESS_DENIEDで失敗する。GrantAccess/GrantTraverseChainの他の呼び出しと
+            // 同様にベストエフォートで無視する（読み取りできないパスは単に観測対象から
+            // 外れるだけで、audit全体を失敗させる理由にはならない）。
+            try
+            {
+                GrantPathAccess(scopePath, AclNative.GENERIC_READ, sidGrantee, AclNative.SUB_CONTAINERS_AND_OBJECTS_INHERIT);
+            }
+            catch (Win32Exception ex) when (ex.NativeErrorCode == AclNative.ERROR_ACCESS_DENIED)
+            {
+            }
         }
     }
 

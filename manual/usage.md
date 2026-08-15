@@ -446,12 +446,26 @@ Ctrl+Cで停止するまでアクセス試行を記録し続ける。終了時�
 ```
 
 （この例では`--scope`の範囲＝`allow_paths`が空のポリシーを想定しているため、
-`--scope`内の全アクセスが「未許可」と判定されている。実際には、`--scope`の
-**外側**へのアクセスは、AppContainerのDACLにより実際には拒否され観測すら
-できない。`--scope`を意図的に広げない限り「本当は触りたかったが観測できな
-かった」範囲が残ることに注意。詳細は
+`--scope`内の全アクセスが「未許可」と判定されている。`--scope`の**外側**への
+アクセスは、AppContainerのDACLにより拒否され観測できない場合があるが、
+`C:\Program Files`や`C:\Windows\System32`配下など、Windowsの既定ACLで元々
+ALL APPLICATION PACKAGESに読み取りが許可されている場所は`--scope`に含めて
+いなくても普通に読めてしまい、観測はされる（`WouldBlock`のまま記録される）。
+本当に「観測すらされず拒否」になるのは、他ユーザーのプロファイル等、真に
+ACLで保護された場所に限られる。詳細は
 `openspec/changes/2026-08-14-resource-access-audit-logging/design.md`の
-Open Questionsを参照。）
+Open Questionsと[DC-028](../views/records/DC-028.md)を参照。）
+
+**既知の制限事項（2026-08-15実機検証で判明）**:
+
+- 短命な子プロセス（数十ms程度で終了するコマンド等）のファイル/ネットワーク
+  アクセスは記録されないことがある。`JobObjectManager`によるPID追跡が500ms
+  間隔のポーリングのため、間に合わないケースがある。詳細は[DC-028](../views/records/DC-028.md)を参照。
+- Windowsセキュリティの「コントロールされたフォルダー アクセス」が有効な
+  環境では、`srm.exe`が保護ディレクトリのACL変更を試みた際にブロックされ、
+  ハングしているように見えることがある。その場合は`srm.exe`を許可アプリに
+  追加すること（`Add-MpPreference -ControlledFolderAccessAllowedApplications
+  <srm.exeのパス>`）。
 
 ---
 

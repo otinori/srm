@@ -59,16 +59,32 @@ public sealed class AuditTraceCollector : IDisposable
         var sessionName = $"SRM-Audit-{appName}-{Guid.NewGuid():N}";
         var session = new TraceEventSession(sessionName) { StopOnDispose = true };
 
-        var collector = new AuditTraceCollector(session, new HashSet<int> { rootPid });
+        try
+        {
+            // 実機検証で判明: TraceEventSession.Sourceへの初回アクセスは（カーネルセッション名
+            // 以外の任意名の場合）暗黙にEnsureStarted()でセッションを起動してしまい、その後の
+            // EnableKernelProviderが「セッションは最初に一度だけ有効化できる」という内部チェック
+            // （IsValidSession）に必ず引っかかって例外を投げる。EnableKernelProviderを
+            // .Sourceへのアクセスより先に呼ぶ必要がある（microsoft/perfview
+            // TraceEventSession.cs、Sourceプロパティのgetter参照）。
+            session.EnableKernelProvider(KernelTraceEventParser.Keywords.FileIOInit | KernelTraceEventParser.Keywords.NetworkTCPIP);
 
-        session.Source.Kernel.FileIOCreate += collector.OnFileIOCreate;
-        session.Source.Kernel.TcpIpConnect += collector.OnTcpIpConnect;
-        session.Source.Kernel.TcpIpConnectIPV6 += collector.OnTcpIpConnectIPV6;
+            var collector = new AuditTraceCollector(session, new HashSet<int> { rootPid });
 
-        session.EnableKernelProvider(KernelTraceEventParser.Keywords.FileIOInit | KernelTraceEventParser.Keywords.NetworkTCPIP);
+            session.Source.Kernel.FileIOCreate += collector.OnFileIOCreate;
+            session.Source.Kernel.TcpIpConnect += collector.OnTcpIpConnect;
+            session.Source.Kernel.TcpIpConnectIPV6 += collector.OnTcpIpConnectIPV6;
 
-        collector._processingThread.Start();
-        return collector;
+            collector._processingThread.Start();
+            return collector;
+        }
+        catch
+        {
+            // EnableKernelProvider/購読設定の途中で失敗した場合、ここでDisposeしないと
+            // 名前付きセッションがOS側に残り続ける（実機検証で複数回リークするのを確認済み）。
+            session.Dispose();
+            throw;
+        }
     }
 
     public void SetTrackedPids(IEnumerable<int> pids) => _trackedPids = new HashSet<int>(pids);
