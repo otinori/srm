@@ -121,11 +121,14 @@ Windows 10 / 11 Pro または Enterprise（Homeでは tier 2 非対応）。Wind
 
 ## 既知の制限事項
 
-- **AppContainer非互換のCLIツールがある**（例: Bunでコンパイルされたバイナリ、`claude-code`
-  CLI等）。名前付きパイプを使う一部の処理がAppContainer内で完了せず無限リトライに陥ることが
-  ある（原因調査済み、srm側からの修正手段なし）。回避策として、該当アプリはTier2で
-  `tier2.app_container: false`を指定する（専用アカウント＋Low Integrity Levelによる隔離に
-  切り替わる）
+- **AppContainer非互換のCLIツールがある場合がある**（例: Bunでコンパイルされたバイナリ）。
+  名前付きパイプを使う一部の処理がAppContainer内で完了せず無限リトライに陥ることがある
+  （原因調査済み、srm側からの修正手段なし。[DC-016](views/records/DC-016.md)）。回避策として、
+  該当アプリはTier2で`tier2.app_container: false`を指定する（専用アカウント＋Low Integrity
+  Levelによる隔離に切り替わる）。なお`claude-code` CLIでこの症状が実際に確認されていたのは
+  v2.1.197時点で、2026-08-15にv2.1.233で再検証したところ再現しなくなっていた
+  （[DC-029](views/records/DC-029.md)。根本原因が修正されたと確定したわけではなく、
+  最小限の非対話1回呼び出しでの確認に留まる点に注意）
 - `tier2.app_container: false`は**書き込みバリアのみ**を保証し、読み取りは制限しない
   （AppContainer相当の隔離ではない）。`srm validate`が該当ポリシーに警告を表示する
 - Tier2のネットワーク遮断は、VM境界そのものではなく**ゲスト内部のWFPエンジン**で行っている

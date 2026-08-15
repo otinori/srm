@@ -23,7 +23,7 @@
 | [DC-013](records\DC-013.md) | Tier2のoutboxはスキャン結果を自動ゲートにせず、検疫→人間による明示的昇格の二段構えとする | DecisionRecord | Published | 2026-07-03 | implementation-agent (claude-sonnet-5) |
 | [DC-014](records\DC-014.md) | Srm.PolicyEditorをBlazor Server(+WinForms)から純粋なWPFへ書き直す | DecisionRecord | Published | 2026-07-03 | implementation-agent (claude-sonnet-5) |
 | [DC-015](records\DC-015.md) | Tier2のネットワーク制御はゲスト内AppContainer SIDベースWfpManagerを正とする（DC-011改訂） | DecisionRecord | Published | 2026-07-03 | implementation-agent (claude-sonnet-5) |
-| [DC-016](records\DC-016.md) | claude-code CLIをAppContainer内で-p実行するとカーネルモードCPUを消費し続ける未解決の再現バグ（8.2再検証） | InvestigationRecord | Published | 2026-07-07 | implementation-agent (claude-sonnet-5) |
+| [DC-016](records\DC-016.md) | claude-code CLIをAppContainer内で-p実行するとカーネルモードCPUを消費し続ける未解決の再現バグ（8.2再検証） | InvestigationRecord | Superseded | 2026-07-07 | implementation-agent (claude-sonnet-5) |
 | [DC-017](records\DC-017.md) | MCPサーバーによる外部制御アーキテクチャ：非常駐プロセス＋目的別3チャネル（Tier1直接注入／Tier2ライブ制御＋オートパイロット／将来オプションのHvSocket） | DecisionRecord | Published | 2026-07-11 | implementation-agent (claude-sonnet-5) |
 | [DC-018](records\DC-018.md) | srm.exe/Srm.Mcp.exe/Srm.PolicyEditor.exeを同一binフォルダへpublishする際のSystem.Text.Json/System.IO.Pipelinesバージョン競合を解消する | DecisionRecord | Published | 2026-07-12 | implementation-agent (claude-sonnet-5) |
 | [DC-019](records\DC-019.md) | Tier2チャネルAの入力フォーカス保証（ゲスト内`--nested`経由のフォーカス確認プロトコル） | DecisionRecord | Published | 2026-07-12 | implementation-agent (claude-sonnet-5) |
@@ -36,3 +36,4 @@
 | [DC-026](records\DC-026.md) | Tier2 AppContainerプロセスのsrm diag PID解決失敗を生Win32 API直接クエリで解決し、副産物としてDC-018のSystem.Text.Json版数競合再発も修正 | DecisionRecord | Published | 2026-07-15 | implementation-agent (claude-sonnet-5) |
 | [DC-027](records\DC-027.md) | srm diag --stacktraceをTier2へ拡張し、実機でTier1比べ著しく遅いETWセッション特性を発見 | DecisionRecord | Published | 2026-07-15 | implementation-agent (claude-sonnet-5) |
 | [DC-028](records\DC-028.md) | srm audit実機検証で発見した3件の実装バグを修正、「観測されず拒否」前提と短命子プロセス追跡の限界を確認 | DecisionRecord | Published | 2026-08-15 | implementation-agent (claude-sonnet-5) |
+| [DC-029](records\DC-029.md) | claude-code 2.1.233での再検証でDC-016のAppContainerビジーループが再現しないことを確認（DC-016をSupersede） | InvestigationRecord | Published | 2026-08-15 | implementation-agent (claude-sonnet-5) |
