@@ -1,0 +1,25 @@
+name: audit-test
+description: srm audit 実機検証用（openspec/changes/2026-08-14-resource-access-audit-logging/tasks.md セクション1）
+tier: 1
+
+application:
+  executable: "%WINDIR%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+  arguments: "-NoProfile -NoLogo -ExecutionPolicy Bypass -File \"%TEMP%\\srm-audit-test\\test.ps1\""
+  working_directory: "%TEMP%\\srm-audit-test"
+
+filesystem:
+  allow_paths:
+    - path: "%TEMP%\\srm-audit-test"
+      access: rw
+
+network:
+  allow_hosts:
+    - "example.com"
+
+process:
+  allow_child_processes: true
+  max_processes: 5
+
+logging:
+  level: debug
+  retention_days: 7

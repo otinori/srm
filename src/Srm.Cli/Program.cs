@@ -13,6 +13,7 @@ var root = new RootCommand("SRM — Secure Runtime Manager")
     ValidateCommand.Build(policiesDir),
     EvidenceCommand.Build(),
     DiagCommand.Build(),
+    AuditCommand.Build(policiesDir),
     CleanupAccountCommand.Build(),
     TransferCommand.Build(),
 };

@@ -192,6 +192,37 @@ public class AclManager
         }
     }
 
+    // resource-access-audit-logging: `srm audit`専用。allow_pathsとは別に、監視したい
+    // スコープパスへ広い読み取りアクセスだけを付与する（書き込みは許可しない、
+    // design.mdのNon-Goals参照）。GrantAccessと違いディレクトリの自動作成は行わない
+    // （audit対象は既存のパスのみを想定するため）。GrantTraverseChain/GrantPathAccessは
+    // 既存のGrantAccessと完全に同じ実装を再利用する。
+    public void GrantReadAccessForAudit(IEnumerable<string> scopePaths, IntPtr sidGrantee) =>
+        GrantReadAccessForAudit(scopePaths, sidGrantee, AllAppPackagesNativeSid.Value, AllAppPackagesSid);
+
+    public void GrantReadAccessForAudit(IEnumerable<string> scopePaths, IntPtr sidGrantee, IntPtr sharedTraverseNativeSid, SecurityIdentifier sharedTraverseSid)
+    {
+        foreach (var scopePath in scopePaths)
+        {
+            if (!Directory.Exists(scopePath)) continue;
+
+            GrantTraverseChain(scopePath, sidGrantee, sharedTraverseNativeSid, sharedTraverseSid);
+
+            // 実機検証で判明: drivers\etc等、TrustedInstaller所有の保護されたディレクトリを
+            // --scopeに指定すると、Administratorsでも該当パス自体のDACL書き換えは
+            // ERROR_ACCESS_DENIEDで失敗する。GrantAccess/GrantTraverseChainの他の呼び出しと
+            // 同様にベストエフォートで無視する（読み取りできないパスは単に観測対象から
+            // 外れるだけで、audit全体を失敗させる理由にはならない）。
+            try
+            {
+                GrantPathAccess(scopePath, AclNative.GENERIC_READ, sidGrantee, AclNative.SUB_CONTAINERS_AND_OBJECTS_INHERIT);
+            }
+            catch (Win32Exception ex) when (ex.NativeErrorCode == AclNative.ERROR_ACCESS_DENIED)
+            {
+            }
+        }
+    }
+
     // restricted-account-app-isolation: Low Integrity Levelプロセスがfilesystem.allow_paths
     // フォルダへ書き込めるようにするため、フォルダのSACLにマンダトリラベルACE（Low +
     // SYSTEM_MANDATORY_LABEL_NO_WRITE_UP）を設定する。`icacls <path> /setintegritylevel

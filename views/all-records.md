@@ -35,3 +35,4 @@
 | [DC-025](records\DC-025.md) | チャネルCをHyper-V Socketsではなくrequest/result JSONポーリングの一般化として実装（DC-017改訂） | DecisionRecord | Published | 2026-07-15 | implementation-agent (claude-sonnet-5) |
 | [DC-026](records\DC-026.md) | Tier2 AppContainerプロセスのsrm diag PID解決失敗を生Win32 API直接クエリで解決し、副産物としてDC-018のSystem.Text.Json版数競合再発も修正 | DecisionRecord | Published | 2026-07-15 | implementation-agent (claude-sonnet-5) |
 | [DC-027](records\DC-027.md) | srm diag --stacktraceをTier2へ拡張し、実機でTier1比べ著しく遅いETWセッション特性を発見 | DecisionRecord | Published | 2026-07-15 | implementation-agent (claude-sonnet-5) |
+| [DC-028](records\DC-028.md) | srm audit実機検証で発見した3件の実装バグを修正、「観測されず拒否」前提と短命子プロセス追跡の限界を確認 | DecisionRecord | Published | 2026-08-15 | implementation-agent (claude-sonnet-5) |
